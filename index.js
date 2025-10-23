@@ -6,139 +6,139 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
-  StringSelectMenuBuilder,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
   PermissionFlagsBits,
   SlashCommandBuilder,
   Routes,
-  REST,
+  REST
 } from "discord.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-// ====================== KONFIGURACJA ====================== //
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
   partials: [Partials.Channel],
 });
 
-client.once("ready", () => {
-  console.log(`✅ Zalogowano jako ${client.user.tag}`);
-});
+// ✅ Rejestracja komendy /ticket setup
+const commands = [
+  new SlashCommandBuilder()
+    .setName("ticket")
+    .setDescription("System ticketów")
+    .addSubcommand(sub =>
+      sub
+        .setName("setup")
+        .setDescription("Utwórz panel ticketów w tym kanale.")
+    )
+].map(cmd => cmd.toJSON());
 
-// ====================== REJESTRACJA KOMENDY /setup ====================== //
 const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
 (async () => {
   try {
-    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
-      body: [
-        new SlashCommandBuilder()
-          .setName("ticket")
-          .setDescription("Zarządzanie systemem ticketów")
-          .addSubcommand((sub) => sub.setName("setup").setDescription("Utwórz panel ticketów")),
-      ],
-    });
+    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
     console.log("✅ Zarejestrowano komendę /ticket setup");
   } catch (error) {
-    console.error("❌ Błąd rejestracji komendy:", error);
+    console.error(error);
   }
 })();
 
-// ====================== SYSTEM TICKETÓW ====================== //
+client.once("ready", () => {
+  console.log(`✅ Zalogowano jako ${client.user.tag}`);
+});
+
+// ============ PANEL SETUP ============ //
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand() && !interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isModalSubmit()) return;
+  if (!interaction.isChatInputCommand()) return;
+  if (interaction.commandName === "ticket" && interaction.options.getSubcommand() === "setup") {
+    if (!interaction.member.roles.cache.has(process.env.SUPPORT_ROLE_ID))
+      return interaction.reply({ content: "❌ Nie masz uprawnień do tworzenia panelu.", ephemeral: true });
 
-  // ===== KOMENDA /ticket setup ===== //
-  if (interaction.isChatInputCommand()) {
-    if (interaction.commandName === "ticket" && interaction.options.getSubcommand() === "setup") {
-      if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator))
-        return interaction.reply({ content: "❌ Musisz być administratorem, aby użyć tej komendy.", ephemeral: true });
+    const embed = new EmbedBuilder()
+      .setTitle("💰 Kup Itemy")
+      .setDescription("Wybierz odpowiednią kategorię, aby utworzyć zgłoszenie!")
+      .setImage("https://i.imgur.com/rzD2rQh.png") // <- tu możesz dać logo Anarchia.gg
+      .setColor("Yellow");
 
-      const embed = new EmbedBuilder()
-        .setTitle("📩 Kup Itemy")
-        .setDescription("Wybierz odpowiednią kategorię, aby utworzyć zgłoszenie!")
-        .setColor("Yellow")
-        .setImage("https://cdn.discordapp.com/attachments/1286396028403906603/1309213644217427978/anarchiagg.png");
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId("zakup").setLabel("💰 Zakup").setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId("odbior").setLabel("📦 Odbiór").setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId("sprzedaz").setLabel("💵 Sprzedaż").setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId("wymiana").setLabel("🔁 Wymiana").setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId("inne").setLabel("❓ Inne").setStyle(ButtonStyle.Secondary)
+    );
 
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId("ticket_menu")
-        .setPlaceholder("Wybierz kategorię...")
-        .addOptions([
-          { label: "💰 Zakup", value: "zakup" },
-          { label: "📦 Odbiór", value: "odbior" },
-          { label: "💵 Sprzedaż", value: "sprzedaz" },
-          { label: "🔄 Wymiana", value: "wymiana" },
-          { label: "❓ Inne", value: "inne" },
-        ]);
-
-      const row = new ActionRowBuilder().addComponents(menu);
-      await interaction.reply({ embeds: [embed], components: [row] });
-    }
+    await interaction.channel.send({ embeds: [embed], components: [row] });
+    await interaction.reply({ content: "✅ Panel ticketów został utworzony!", ephemeral: true });
   }
+});
 
-  // ===== MENU WYBORU ===== //
-  if (interaction.isStringSelectMenu() && interaction.customId === "ticket_menu") {
-    const USER_ROLE_ID = process.env.USER_ROLE_ID;
-    if (!interaction.member.roles.cache.has(USER_ROLE_ID)) {
-      return interaction.reply({
-        content: `🚫 Nie masz uprawnień, aby utworzyć ticket. Wymagana rola: <@&${USER_ROLE_ID}>.`,
-        ephemeral: true,
-      });
-    }
+// ============ INTERAKCJE ============ //
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isButton() && !interaction.isModalSubmit()) return;
 
-    const option = interaction.values[0];
-    const modale = new ModalBuilder().setTitle("Kup Itemy").setCustomId(`modal_${option}`);
+  // --- Formularze ---
+  if (interaction.isButton()) {
+    const userRole = interaction.member.roles.cache.has(process.env.USER_ROLE_ID);
+    if (!userRole && !interaction.member.roles.cache.has(process.env.SUPPORT_ROLE_ID))
+      return interaction.reply({ content: "❌ Tylko użytkownicy z odpowiednią rangą mogą tworzyć tickety.", ephemeral: true });
 
-    if (option === "zakup") {
+    const modale = new ModalBuilder()
+      .setTitle("Kup Itemy")
+      .setCustomId(`modal_${interaction.customId}`);
+
+    if (interaction.customId === "zakup") {
       modale.addComponents(
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("server").setLabel("NA JAKIM SERWERZE:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("item").setLabel("CO CHCESZ KUPIĆ:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("price").setLabel("ZA ILE CHCESZ KUPIĆ:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("payment").setLabel("JAKĄ METODĄ PŁATNOŚCI:").setStyle(TextInputStyle.Short).setRequired(true))
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("server").setLabel("NA JAKIM SERWERZE:").setPlaceholder("np. anarchia.gg lf").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("item").setLabel("CO CHCESZ KUPIĆ:").setPlaceholder("np. elytrę, 100k$").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("price").setLabel("ZA ILE CHCESZ KUPIĆ:").setPlaceholder("np. 10 PLN").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("method").setLabel("JAKĄ METODĄ PŁACISZ:").setPlaceholder("np. BLIK, PaySafeCard, Przelew").setStyle(TextInputStyle.Short).setRequired(true))
       );
     }
 
-    if (option === "odbior") {
+    if (interaction.customId === "odbior") {
       modale.addComponents(
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("server").setLabel("NA JAKIM SERWERZE:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("item").setLabel("CO CHCESZ ODEBRAĆ:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("reason").setLabel("ZA CO CHCESZ ODEBRAĆ:").setStyle(TextInputStyle.Short).setRequired(true))
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("server").setLabel("NA JAKIM SERWERZE:").setPlaceholder("np. anarchia.gg lf").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("item").setLabel("CO CHCESZ ODEBRAĆ:").setPlaceholder("np. 20k$, elytra").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("reason").setLabel("ZA CO CHCESZ ODEBRAĆ:").setPlaceholder("np. konkurs, zaproszenia, drop").setStyle(TextInputStyle.Short).setRequired(true))
       );
     }
 
-    if (option === "sprzedaz") {
+    if (interaction.customId === "sprzedaz") {
       modale.addComponents(
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("server").setLabel("NA JAKIM SERWERZE:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("item").setLabel("CO CHCESZ SPRZEDAĆ:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("price").setLabel("ZA ILE CHCESZ SPRZEDAĆ:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("payment").setLabel("METODA PŁATNOŚCI:").setStyle(TextInputStyle.Short).setRequired(true))
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("server").setLabel("NA JAKIM SERWERZE:").setPlaceholder("np. anarchia.gg lf").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("item").setLabel("CO CHCESZ SPRZEDAĆ:").setPlaceholder("np. elytrę, 100k$").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("price").setLabel("ZA ILE CHCESZ SPRZEDAĆ:").setPlaceholder("np. 10 PLN").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("method").setLabel("JAKĄ METODĘ PŁATNOŚCI CHCESZ OTRZYMAĆ:").setPlaceholder("np. BLIK").setStyle(TextInputStyle.Short).setRequired(true))
       );
     }
 
-    if (option === "wymiana") {
+    if (interaction.customId === "wymiana") {
       modale.addComponents(
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("from").setLabel("Z JAKIEGO SERWERA:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("to").setLabel("NA JAKI SERWER:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("give").setLabel("CO WYMIENIASZ:").setStyle(TextInputStyle.Short).setRequired(true)),
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("get").setLabel("CO OTRZYMUJESZ:").setStyle(TextInputStyle.Short).setRequired(true))
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("from").setLabel("Z JAKIEGO SERWERA:").setPlaceholder("np. anarchia.gg lf").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("to").setLabel("NA JAKI SERWER:").setPlaceholder("np. anarchia.gg box").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("give").setLabel("CO CHCESZ WYMIENIĆ:").setPlaceholder("np. elytrę").setStyle(TextInputStyle.Short).setRequired(true)),
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("get").setLabel("CO CHCESZ OTRZYMAĆ:").setPlaceholder("np. 100k$").setStyle(TextInputStyle.Short).setRequired(true))
       );
     }
 
-    if (option === "inne") {
+    if (interaction.customId === "inne") {
       modale.addComponents(
-        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("desc").setLabel("OPISZ SWOJĄ SPRAWĘ:").setStyle(TextInputStyle.Paragraph).setRequired(true))
+        new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("desc").setLabel("W JAKIEJ SPRAWIE ROBISZ TICKETA:").setPlaceholder("Opisz swoją sprawę...").setStyle(TextInputStyle.Paragraph).setRequired(true))
       );
     }
 
     await interaction.showModal(modale);
   }
 
-  // ===== MODALE ===== //
+  // --- Tworzenie ticketa po wysłaniu modala ---
   if (interaction.isModalSubmit()) {
-    const type = interaction.customId.split("_")[1];
+    const type = interaction.customId.replace("modal_", "");
+    const guild = interaction.guild;
+    const user = interaction.user;
+
     const categories = {
       zakup: process.env.CATEGORY_ZAKUP,
       odbior: process.env.CATEGORY_ODBIOR,
@@ -147,8 +147,6 @@ client.on("interactionCreate", async (interaction) => {
       inne: process.env.CATEGORY_INNE,
     };
     const categoryId = categories[type];
-    const guild = interaction.guild;
-    const user = interaction.user;
 
     const ticketChannel = await guild.channels.create({
       name: `ticket-${user.username}`,
@@ -162,20 +160,25 @@ client.on("interactionCreate", async (interaction) => {
     });
 
     const embed = new EmbedBuilder()
-      .setTitle(`🎟️ Kup Itemy × ${type.toUpperCase()}`)
-      .setDescription(`**Dane klienta:** ${user}\n**Typ zgłoszenia:** ${type}`)
+      .setTitle(`🎟️ Ticket – ${type.toUpperCase()}`)
+      .setDescription(`Zgłoszenie od: ${user}`)
       .setColor("Yellow")
       .setTimestamp();
 
-    const buttons = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId("close_ticket").setLabel("Zamknij").setStyle(ButtonStyle.Danger),
-      new ButtonBuilder().setCustomId("settings_ticket").setLabel("Ustawienia").setStyle(ButtonStyle.Secondary)
+    const closeBtn = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId("close_ticket").setLabel("Zamknij").setStyle(ButtonStyle.Danger)
     );
 
-    await ticketChannel.send({ embeds: [embed], components: [buttons] });
+    await ticketChannel.send({ embeds: [embed], components: [closeBtn] });
     await interaction.reply({ content: `✅ Ticket utworzony: ${ticketChannel}`, ephemeral: true });
+  }
+
+  // --- Zamknięcie ticketa ---
+  if (interaction.isButton() && interaction.customId === "close_ticket") {
+    if (!interaction.member.roles.cache.has(process.env.SUPPORT_ROLE_ID))
+      return interaction.reply({ content: "❌ Nie masz uprawnień do zamknięcia ticketa.", ephemeral: true });
+    await interaction.channel.delete();
   }
 });
 
-// ====================== START ====================== //
 client.login(process.env.TOKEN);
