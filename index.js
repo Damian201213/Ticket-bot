@@ -188,3 +188,73 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.login(process.env.TOKEN);
+// ───────────────────────────────
+// Obsługa przycisku "Ustawienia"
+// ───────────────────────────────
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isButton()) return;
+  if (interaction.customId !== 'settings_ticket') return;
+
+  const supportRole = interaction.guild.roles.cache.get(process.env.SUPPORT_ROLE_ID);
+  if (!interaction.member.roles.cache.has(supportRole.id)) {
+    return interaction.reply({
+      content: '❌ Nie masz uprawnień do zarządzania tym zgłoszeniem!',
+      ephemeral: true
+    });
+  }
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId('ticket_settings_menu')
+    .setPlaceholder('⚙️ Wybierz akcję...')
+    .addOptions([
+      {
+        label: '📌 Przypnij wiadomość',
+        description: 'Przypnij główny embed ticketa',
+        value: 'pin'
+      },
+      {
+        label: '🧹 Wyczyść wiadomości',
+        description: 'Usuń 20 ostatnich wiadomości w kanale',
+        value: 'clear'
+      },
+      {
+        label: '🗑️ Usuń ticket',
+        description: 'Zamknij i usuń kanał ticketa',
+        value: 'delete'
+      }
+    ]);
+
+  const row = new ActionRowBuilder().addComponents(menu);
+
+  await interaction.reply({
+    content: '⚙️ **Panel ustawień ticketa:**',
+    components: [row],
+    ephemeral: true
+  });
+});
+
+// ───────────────────────────────
+// Wykonanie wybranej akcji z menu ustawień
+// ───────────────────────────────
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isStringSelectMenu() || interaction.customId !== 'ticket_settings_menu') return;
+
+  const action = interaction.values[0];
+
+  if (action === 'pin') {
+    const lastMessage = (await interaction.channel.messages.fetch({ limit: 1 })).first();
+    if (lastMessage) await lastMessage.pin();
+    return interaction.reply({ content: '📌 Wiadomość została przypięta.', ephemeral: true });
+  }
+
+  if (action === 'clear') {
+    const messages = await interaction.channel.messages.fetch({ limit: 20 });
+    await interaction.channel.bulkDelete(messages);
+    return interaction.reply({ content: '🧹 Ostatnie 20 wiadomości zostało usunięte.', ephemeral: true });
+  }
+
+  if (action === 'delete') {
+    await interaction.reply({ content: '🗑️ Ticket zostanie usunięty za 5 sekund...', ephemeral: true });
+    setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
+  }
+});
