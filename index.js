@@ -208,6 +208,11 @@ client.on('interactionCreate', async (interaction) => {
     .setPlaceholder('⚙️ Wybierz akcję...')
     .addOptions([
       {
+  label: '📣 Wezwij użytkownika',
+  description: 'Wyślij powiadomienie do właściciela ticketa',
+  value: 'call_user'
+},
+      {
         label: '📌 Przypnij wiadomość',
         description: 'Przypnij główny embed ticketa',
         value: 'pin'
