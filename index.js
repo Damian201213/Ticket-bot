@@ -1,4 +1,4 @@
-// === DonutOne Main Bot ===
+// === bot.js ===
 const {
   Client,
   GatewayIntentBits,
@@ -6,7 +6,7 @@ const {
   SlashCommandBuilder,
   REST,
   Routes,
-  PermissionsBitField,
+  PermissionsBitField
 } = require("discord.js");
 require("dotenv").config();
 
@@ -15,18 +15,15 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.MessageContent
   ],
 });
 
-// ===============================
-// 🔧 ENV zmienne
-// ===============================
 const TOKEN = process.env.BOT_TOKEN;
 const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
-const CALC_CHANNEL_ID = process.env.CALC_CHANNEL_ID; // 👈 ID kanału, w którym działa !calc
+const CLEAR_CHANNEL_ID = process.env.CLEAR_CHANNEL_ID; // kanał, gdzie /clear działa
 
 // ===============================
 // 1️⃣ Rejestracja komendy /clear
@@ -35,13 +32,13 @@ const commands = [
   new SlashCommandBuilder()
     .setName("clear")
     .setDescription("🧹 Delete a specific number of messages from the channel.")
-    .addIntegerOption((option) =>
+    .addIntegerOption(option =>
       option
         .setName("amount")
         .setDescription("How many messages to delete (1–100)")
         .setRequired(true)
-    ),
-].map((cmd) => cmd.toJSON());
+    )
+].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(TOKEN);
 
@@ -69,8 +66,8 @@ client.on("guildMemberAdd", async (member) => {
     .setTitle("🍩 DonutOne × WELCOME")
     .setDescription(
       `✨ Welcome **${member.user.username}** to **DonutOne**!\n\n` +
-        `👥 You are member **#${member.guild.memberCount}** on our server!\n\n` +
-        `🌟 We hope you’ll stay with us for a long time!`
+      `👥 You are member **#${member.guild.memberCount}** on our server!\n\n` +
+      `🌟 We hope you’ll stay with us for a long time!`
     )
     .setThumbnail(member.user.displayAvatarURL({ extension: "png", size: 256 }))
     .setFooter({ text: `Joined at ${new Date().toLocaleString()}` })
@@ -80,16 +77,23 @@ client.on("guildMemberAdd", async (member) => {
 });
 
 // ===============================
-// 3️⃣ /clear komenda
+// 3️⃣ Obsługa komendy /clear
 // ===============================
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === "clear") {
+    // Tylko wybrany kanał
+    if (interaction.channel.id !== CLEAR_CHANNEL_ID) {
+      return await interaction.reply({
+        content: "🚫 You can only use this command in the designated channel.",
+        ephemeral: true,
+      });
+    }
+
+    // Uprawnienia
     if (
-      !interaction.member.permissions.has(
-        PermissionsBitField.Flags.ManageMessages
-      )
+      !interaction.member.permissions.has(PermissionsBitField.Flags.ManageMessages)
     ) {
       return await interaction.reply({
         content: "🚫 You don’t have permission to use this command.",
@@ -98,6 +102,7 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     const amount = interaction.options.getInteger("amount");
+
     if (amount < 1 || amount > 100) {
       return await interaction.reply({
         content: "⚠️ Please provide a number between **1 and 100**.",
@@ -105,6 +110,7 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
+    // Usuwanie wiadomości
     const deleted = await interaction.channel
       .bulkDelete(amount, true)
       .catch((err) => {
@@ -114,7 +120,8 @@ client.on("interactionCreate", async (interaction) => {
 
     if (!deleted) {
       return await interaction.reply({
-        content: "❌ Couldn’t delete messages (older than 14 days?).",
+        content:
+          "❌ Couldn’t delete messages. They may be older than 14 days.",
         ephemeral: true,
       });
     }
@@ -127,83 +134,7 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 // ===============================
-// 4️⃣ !calc — tylko na wybranym kanale
-// ===============================
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
-
-  // Tylko !calc
-  if (message.content.toLowerCase() === "!calc") {
-    if (message.channel.id !== CALC_CHANNEL_ID) {
-      return message.reply(
-        "❌ You can only use this command in the calculator channel!"
-      );
-    }
-
-    const embed = new EmbedBuilder()
-      .setColor("#ff66cc")
-      .setTitle("🧮 What do you want to calculate?")
-      .setDescription(
-        "Type `1` for: profit per bone <:bone:1323136132833218601>\n" +
-          "Type `2` for: spawners to bones/min <:mob_spawner:1323136997388320810>\n" +
-          "Type `3` for: pickles to money <:sea_pickles:1323135877651628103>\n" +
-          "Type `4` for: farm to money per hour <:diamond:1323137208739434557>\n" +
-          "Type `5` for: bone storage duration <:minecraft_clock:1323136404649410677>\n" +
-          "Type `6` for: modules to spawners conversion 🔄\n" +
-          "Type `7` for: bamboo farm to money per hour <:minecraft_bamboo:1357200561199644673>\n\n" +
-          "Please __reply to this message__ with your choice!"
-      )
-      .setFooter({ text: "DonutSMP Calculator | !calc" });
-
-    const sent = await message.channel.send({ embeds: [embed] });
-
-    const filter = (m) => m.author.id === message.author.id;
-    try {
-      const collected = await message.channel.awaitMessages({
-        filter,
-        max: 1,
-        time: 60000,
-        errors: ["time"],
-      });
-
-      const choice = collected.first().content.trim();
-
-      switch (choice) {
-        case "1":
-          message.reply("🦴 Option 1: profit per bone – coming soon!");
-          break;
-        case "2":
-          message.reply("💀 Option 2: spawners to bones/min – coming soon!");
-          break;
-        case "3":
-          message.reply("🥒 Option 3: pickles to money – coming soon!");
-          break;
-        case "4":
-          message.reply("💎 Option 4: farm to money per hour – coming soon!");
-          break;
-        case "5":
-          message.reply("⏰ Option 5: bone storage duration – coming soon!");
-          break;
-        case "6":
-          message.reply(
-            "🔄 Option 6: modules to spawners conversion – coming soon!"
-          );
-          break;
-        case "7":
-          message.reply(
-            "🎋 Option 7: bamboo farm to money per hour – coming soon!"
-          );
-          break;
-        default:
-          message.reply("❌ Please reply with a number between 1 and 7.");
-          break;
-      }
-    } catch {
-      message.reply("⏰ You didn’t reply in time. Please try again!");
-    }
-  }
-});
-
+// 4️⃣ Logowanie bota
 // ===============================
 client.once("ready", () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
