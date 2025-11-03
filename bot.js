@@ -1,27 +1,16 @@
-// === bot.js ===
-const {
-  Client,
-  GatewayIntentBits,
-  EmbedBuilder,
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ButtonBuilder,
-  ButtonStyle,
-  PermissionsBitField,
-  ChannelType,
-} = require("discord.js");
-require("dotenv").config();
+require('dotenv').config();
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType } = require('discord.js');
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers,
-  ],
+    GatewayIntentBits.MessageContent
+  ]
+});
+
+client.once('ready', () => {
+  console.log(`✅ Zalogowano jako ${client.user.tag}`);
 });
 
 // === PANEL KOMENDY ===
