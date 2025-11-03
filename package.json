@@ -1,10 +1,10 @@
 {
-  "name": "welcome-bot",
+  "name": "ticket-bot",
   "version": "1.0.0",
   "description": "A Discord welcome bot that greets new members with embeds.",
   "main": "welcome-bot.js",
   "scripts": {
-    "start": "node welcome-bot.js"
+    "start": "nmp start"
   },
   "author": "YourName",
   "license": "MIT",
