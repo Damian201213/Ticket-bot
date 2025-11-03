@@ -4,7 +4,7 @@
   "description": "A Discord welcome bot that greets new members with embeds.",
   "main": "welcome-bot.js",
   "scripts": {
-    "start": "nmp start"
+    "start": "node index.js"
   },
   "author": "YourName",
   "license": "MIT",
