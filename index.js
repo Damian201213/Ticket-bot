@@ -23,7 +23,7 @@ const TOKEN = process.env.BOT_TOKEN;
 const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
-const CLEAR_CHANNEL_ID = process.env.CLEAR_CHANNEL_ID; // kanał, gdzie /clear działa
+const CLEAR_CHANNEL_ID = process.env.CLEAR_CHANNEL_ID;
 
 // ===============================
 // 1️⃣ Rejestracja komendy /clear
@@ -134,7 +134,34 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 // ===============================
-// 4️⃣ Logowanie bota
+// 4️⃣ Komenda !buy
+// ===============================
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+
+  if (message.content.toLowerCase() === "!buy") {
+    const embed = new EmbedBuilder()
+      .setColor("#ff69b4")
+      .setTitle("🛒 How to Buy Something on DonutOne")
+      .setDescription(
+        "### 🛍️ How to buy something on [MY STORE](https://donutone/)\n\n" +
+        "- First go to [My Store](https://donutone.mysellauth.com/), select the product that you want, and make sure it's in stock.\n" +
+        "- When you select what you want, after clicking **'Buy Now'**, type your **email address**, connect your **Discord account**, and select **payment**.\n" +
+        "- After you pay for the product, DM <@1427303659141595137> with your **IGN**.\n\n" +
+        "🧾 Your order will appear here:\n" +
+        "[Orders Channel](https://discord.com/channels/1434612759928115363/1434619237405823116)\n\n" +
+        "💖 After you receive your product, please **vouch me** here:\n" +
+        "[Vouch Channel](https://discord.com/channels/1434612759928115363/1434645795289960458)"
+      )
+      .setFooter({ text: "DonutOne Store • Thank you for supporting!" })
+      .setTimestamp();
+
+    await message.channel.send({ embeds: [embed] });
+  }
+});
+
+// ===============================
+// 5️⃣ Logowanie bota
 // ===============================
 client.once("ready", () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
