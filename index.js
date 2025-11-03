@@ -1,4 +1,4 @@
-ale jak w index.js mam to 
+
 `**1️⃣ Be Respectful**
 Treat all members with kindness and respect. No bullying, harassment, hate speech, or personal attacks.  
 💡 *This rule sets the tone for a positive and welcoming environment. It prevents toxic behavior that could drive people away.*
