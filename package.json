@@ -1,8 +1,13 @@
 {
-  "name": "anarchia.gg",
+  "name": "welcome-bot",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
+  "description": "A Discord welcome bot that greets new members with embeds.",
+  "main": "welcome-bot.js",
+  "scripts": {
+    "start": "node welcome-bot.js"
+  },
+  "author": "YourName",
+  "license": "MIT",
   "dependencies": {
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5"
