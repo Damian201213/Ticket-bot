@@ -195,6 +195,46 @@ To buy or sell make a <#1434615744703889602>
 
     await message.channel.send({ embeds: [embed] });
   }
+    // !role
+  if (message.content.toLowerCase() === "!role") {
+    const embed = new EmbedBuilder()
+      .setColor("#0099ff")
+      .setTitle("📜 DonutOne Server Rules")
+      .setDescription(
+`**1️⃣ Be Respectful**
+Treat all members with kindness and respect. No bullying, harassment, hate speech, or personal attacks.  
+💡 *This rule sets the tone for a positive and welcoming environment. It prevents toxic behavior that could drive people away.*
+
+**2️⃣ No Spamming or Flooding**
+Do not spam messages, images, or links. Avoid flooding the chat with excessive messages.  
+💡 *Spamming disrupts conversations and makes it difficult for others to engage in meaningful discussions.*
+
+**3️⃣ No NSFW Content**
+No explicit, sexually suggestive, or inappropriate content in any channels unless the server specifically allows for it.  
+💡 *This keeps the server safe for all ages and ensures a respectful space for everyone.*
+
+**4️⃣ Follow Discord’s Terms of Service**
+Always adhere to Discord’s Terms of Service and Community Guidelines.  
+💡 *This is a non-negotiable rule that protects your server from being taken down by Discord for violations of its terms.*
+
+**5️⃣ No Advertising or Self-Promotion Without Permission**
+Don’t advertise your own server, social media, or products without getting approval from admins first.  
+💡 *Prevents spammy self-promotion and keeps chat clean.*
+
+**6️⃣ Use Appropriate Channels**
+Stay on-topic and use the correct channels for different conversations.  
+💡 *Helps keep the server organized and easy to navigate.*
+
+**7️⃣ No Personal Information**
+Don’t share personal information, including addresses, phone numbers, or private details about yourself or others.  
+💡 *Protects members' privacy and safety.*`
+      )
+      .setFooter({ text: "DonutOne • Server Rules" })
+      .setTimestamp();
+
+    await message.channel.send({ embeds: [embed] });
+  }
+
   // !shop
   if (message.content.toLowerCase() === "!shop") {
     const embed = new EmbedBuilder()
