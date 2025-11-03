@@ -160,6 +160,41 @@ client.on("messageCreate", async (message) => {
     await message.channel.send({ embeds: [embed] });
   }
 
+   // !spawner
+  if (message.content.toLowerCase() === "!spawner") {
+    const embed = new EmbedBuilder()
+      .setColor("#ffcc00")
+      .setTitle("🕹️ Spawner Prices")
+      .setDescription(
+`**Buying:** (You Sell To Us)
+> - Iron Golem Spawners **875k** each
+> - Skeleton Spawners  **1.85m-2m** each
+> - Zombified Pigman Spawners **500k** each
+> - Blaze Spawners **350k** each
+> - Creeper Spawners **400k** each
+> - Zombie Spawners **250k** each
+> - Spider Spawners **250k** each
+> - Pig Spawners **150k** each
+> - 🐮 Cow Spawners **150k** each
+
+**Selling:** (We Sell To You)
+> - Iron Golem Spawner **1.2m** each
+> - Skeleton Spawners **2.4m** each
+> - Pig Spawners **500k** each
+> - 🐮 Cow Spawners **500k** each
+> - Creeper Spawners **800k** each
+__**WE ARE NOT SELLING ANY OTHER SPAWNER THATS NOT LISTED HERE!**__
+
+To buy or sell make a <#1434615744703889602>
+**10 spawners min**
+- We are not going first but on huge number of spawners there is a little space to negotiate. (500+ Spawner)
+<#1434615744703889602>`
+      )
+      .setFooter({ text: "DonutOne • Spawner Market" })
+      .setTimestamp();
+
+    await message.channel.send({ embeds: [embed] });
+  }
   // !shop
   if (message.content.toLowerCase() === "!shop") {
     const embed = new EmbedBuilder()
