@@ -134,11 +134,12 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 // ===============================
-// 4️⃣ Komenda !buy
+// 4️⃣ Komendy !buy i !shop
 // ===============================
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
+  // !buy
   if (message.content.toLowerCase() === "!buy") {
     const embed = new EmbedBuilder()
       .setColor("#ff69b4")
@@ -154,6 +155,18 @@ client.on("messageCreate", async (message) => {
         "[Vouch Channel](https://discord.com/channels/1434612759928115363/1434645795289960458)"
       )
       .setFooter({ text: "DonutOne Store • Thank you for supporting!" })
+      .setTimestamp();
+
+    await message.channel.send({ embeds: [embed] });
+  }
+
+  // !shop
+  if (message.content.toLowerCase() === "!shop") {
+    const embed = new EmbedBuilder()
+      .setColor("#00ff99")
+      .setTitle("🛍️ Visit Our Store")
+      .setDescription("[Click here to open the store](https://donutone.mysellauth.com/)")
+      .setFooter({ text: "DonutOne Store • Fast & Secure" })
       .setTimestamp();
 
     await message.channel.send({ embeds: [embed] });
