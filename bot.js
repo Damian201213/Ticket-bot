@@ -1,5 +1,12 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType } = require('discord.js');
+const {
+  Client,
+  GatewayIntentBits,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
+} = require('discord.js');
 
 const client = new Client({
   intents: [
@@ -13,41 +20,36 @@ client.once('ready', () => {
   console.log(`✅ Zalogowano jako ${client.user.tag}`);
 });
 
-// === PANEL KOMENDY ===
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (message.content === "!panel") {
     const embed = new EmbedBuilder()
       .setColor("#00ffff")
-      .setTitle("🎟️ Ticket Panel")
-      .setDescription("✨ Select a category to open a ticket.");
+      .setTitle("🎫 Ticket Panel")
+      .setDescription("Wybierz kategorię, aby otworzyć ticket.");
 
-    const menu = new StringSelectMenuBuilder()
-      .setCustomId("ticket_select")
-      .setPlaceholder("🎫 | choose an option")
-      .addOptions([
-        {
-          label: "💸 Buy/Sell Skellys",
-          description: "buy or sell skellys",
-          value: "buy_sell",
-        },
-        {
-          label: "🎁 Claim Giveaway",
-          description: "Claim your prize",
-          value: "claim_giveaway",
-        },
-        {
-          label: "👨‍💼 Sponsor Loot Drop",
-          description: "give items",
-          value: "sponsor_drop",
-        },
-        {
-          label: "📩 Pick Up The Purchased Item",
-          description: "Odbierz zakupiony przedmiot",
-          value: "pickup_item",
-        },
-      ]);
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("buy_sell")
+        .setLabel("💸 Buy/Sell Skellys")
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId("giveaway")
+        .setLabel("🎁 Claim Giveaway")
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId("sponsor")
+        .setLabel("👨‍💼 Sponsor Loot Drop")
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId("pickup")
+        .setLabel("📩 Pick Up Purchased Item")
+        .setStyle(ButtonStyle.Danger)
+    );
 
+    await message.channel.send({ embeds: [embed], components: [row] });
+  }
+});
     const row = new ActionRowBuilder().addComponents(menu);
     await message.channel.send({ embeds: [embed], components: [row] });
   }
