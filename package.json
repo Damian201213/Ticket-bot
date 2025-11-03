@@ -1,8 +1,8 @@
 {
   "name": "ticket-bot",
   "version": "1.0.0",
-  "description": "A Discord welcome bot that greets new members with embeds.",
-  "main": "welcome-bot.js",
+  "description": "A Discord ticket bot with category-based forms.",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
