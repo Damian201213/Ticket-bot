@@ -1,65 +1,61 @@
+// === bot.js ===
 const {
   Client,
   GatewayIntentBits,
   EmbedBuilder,
   ActionRowBuilder,
   StringSelectMenuBuilder,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
   ButtonBuilder,
   ButtonStyle,
+  PermissionsBitField,
   ChannelType,
-  PermissionsBitField
 } = require("discord.js");
 require("dotenv").config();
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+  ],
 });
 
-const TOKEN = process.env.BOT_TOKEN;
-const GUILD_ID = process.env.GUILD_ID;
-
-// Kategorie z .env
-const CATEGORY_BUY_SELL = process.env.CATEGORY_BUY_SELL;
-const CATEGORY_CLAIM_GIVEAWAY = process.env.CATEGORY_CLAIM_GIVEAWAY;
-const CATEGORY_PICKUP_ITEM = process.env.CATEGORY_PICKUP_ITEM;
-
-// ===========================================
-// 1️⃣ Komenda do wysłania panelu ticketów
-// ===========================================
-client.on("ready", async () => {
-  console.log(`🤖 Zalogowano jako ${client.user.tag}`);
-});
-
-// Możesz wysłać ten panel ręcznie (np. przez komendę lub ręcznie z kodu)
+// === PANEL KOMENDY ===
 client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
   if (message.content === "!panel") {
     const embed = new EmbedBuilder()
-      .setColor("#ff69b4")
-      .setTitle("🎫 DonutOne Support Panel")
-      .setDescription("Select a category to open a ticket:")
-      .setFooter({ text: "DonutOne Tickets System" });
+      .setColor("#00ffff")
+      .setTitle("🎟️ Ticket Panel")
+      .setDescription("✨ Select a category to open a ticket.");
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId("ticket_category")
-      .setPlaceholder("📂| Select the type of ticket")
+      .setCustomId("ticket_select")
+      .setPlaceholder("🎫 | choose an option")
       .addOptions([
         {
           label: "💸 Buy/Sell Skellys",
-          description: "Kup lub sprzedaj spawner",
+          description: "buy or sell skellys",
           value: "buy_sell",
-          emoji: "💸",
         },
         {
           label: "🎁 Claim Giveaway",
-          description: "Odbierz nagrodę z giveaway’a",
+          description: "Claim your prize",
           value: "claim_giveaway",
-          emoji: "🎁",
         },
         {
-          label: "📩 Pick Up Purchased Item",
+          label: "👨‍💼 Sponsor Loot Drop",
+          description: "give items",
+          value: "sponsor_drop",
+        },
+        {
+          label: "📩 Pick Up The Purchased Item",
           description: "Odbierz zakupiony przedmiot",
           value: "pickup_item",
-          emoji: "📩",
         },
       ]);
 
@@ -68,55 +64,153 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// ===========================================
-// 2️⃣ Tworzenie ticketu po wyborze kategorii
-// ===========================================
+// === INTERAKCJA — WYBÓR KATEGORII ===
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isStringSelectMenu()) return;
-  if (interaction.customId !== "ticket_category") return;
+  if (interaction.customId !== "ticket_select") return;
 
   const value = interaction.values[0];
-  let categoryId;
-  let ticketName;
-  let title;
+  let modal;
 
+  // Różne formularze dla każdej kategorii
   if (value === "buy_sell") {
-    categoryId = CATEGORY_BUY_SELL;
-    ticketName = `buy-sell-${interaction.user.username}`;
-    title = "💸 Kup/Sprzedaj Skellys";
-  } else if (value === "claim_giveaway") {
-    categoryId = CATEGORY_CLAIM_GIVEAWAY;
-    ticketName = `giveaway-${interaction.user.username}`;
+    modal = new ModalBuilder()
+      .setCustomId("modal_buy_sell")
+      .setTitle("💸 Buy/Sell Skellys Ticket");
+
+    const ign = new TextInputBuilder()
+      .setCustomId("ign")
+      .setLabel("Your Minecraft IGN")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
+
+    const amount = new TextInputBuilder()
+      .setCustomId("amount")
+      .setLabel("Amount (or what you're selling)")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
+
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(ign),
+      new ActionRowBuilder().addComponents(amount)
+    );
+  }
+
+  if (value === "claim_giveaway") {
+    modal = new ModalBuilder()
+      .setCustomId("modal_giveaway")
+      .setTitle("🎁 Claim Giveaway");
+
+    const ign = new TextInputBuilder()
+      .setCustomId("ign")
+      .setLabel("Your Minecraft IGN")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
+
+    const reward = new TextInputBuilder()
+      .setCustomId("reward")
+      .setLabel("What did you win?")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
+
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(ign),
+      new ActionRowBuilder().addComponents(reward)
+    );
+  }
+
+  if (value === "sponsor_lootdrop") {
+    modal = new ModalBuilder()
+      .setCustomId("modal_sponsor")
+      .setTitle("👨‍💼 Sponsor Loot Drop");
+
+    const ign = new TextInputBuilder()
+      .setCustomId("ign")
+      .setLabel("Your Minecraft IGN")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
+
+    const details = new TextInputBuilder()
+      .setCustomId("items for loot drop")
+      .setLabel("What things do you want to give?")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
+
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(sponsorName),
+      new ActionRowBuilder().addComponents(details)
+    );
+  }
+
+  if (value === "pickup_item") {
+    modal = new ModalBuilder()
+      .setCustomId("modal_pickup")
+      .setTitle("📩 Pick Up Purchased Item");
+
+    const ign = new TextInputBuilder()
+      .setCustomId("ign")
+      .setLabel("Your Minecraft IGN")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
+
+    const item = new TextInputBuilder()
+      .setCustomId("item")
+      .setLabel("What item did you purchase?")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
+
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(ign),
+      new ActionRowBuilder().addComponents(item)
+    );
+  }
+
+  await interaction.showModal(modal);
+});
+
+// === FORMULARZE (modale) ===
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isModalSubmit()) return;
+
+  const user = interaction.user;
+  let categoryId, title, description;
+
+  // ✅ Dane dla każdej kategorii
+  if (interaction.customId === "modal_buy_sell") {
+    categoryId = process.env.CATEGORY_BUY_SELL_ID;
+    title = "💸 Buy/Sell Skellys";
+    description = `IGN: **${interaction.fields.getTextInputValue("ign")}**\nAmount/Offer: **${interaction.fields.getTextInputValue("amount")}**`;
+  }
+
+  if (interaction.customId === "modal_giveaway") {
+    categoryId = process.env.CATEGORY_GIVEAWAY_ID;
     title = "🎁 Claim Giveaway";
-  } else if (value === "pickup_item") {
-    categoryId = CATEGORY_PICKUP_ITEM;
-    ticketName = `pickup-${interaction.user.username}`;
+    description = `IGN: **${interaction.fields.getTextInputValue("ign")}**\nReward: **${interaction.fields.getTextInputValue("reward")}**`;
+  }
+
+  if (interaction.customId === "modal_sponsor") {
+    categoryId = process.env.CATEGORY_SPONSOR_ID;
+    title = "👨‍💼 Sponsor Loot Drop";
+    description = `Sponsor: **${interaction.fields.getTextInputValue("sponsor_name")}**\nDetails: **${interaction.fields.getTextInputValue("details")}**`;
+  }
+
+  if (interaction.customId === "modal_pickup") {
+    categoryId = process.env.CATEGORY_PICKUP_ID;
     title = "📩 Pick Up Purchased Item";
+    description = `IGN: **${interaction.fields.getTextInputValue("ign")}**\nItem: **${interaction.fields.getTextInputValue("item")}**`;
   }
 
-  // Sprawdzenie duplikatu ticketu
-  const existing = interaction.guild.channels.cache.find(
-    (ch) => ch.name === ticketName.toLowerCase()
-  );
-  if (existing) {
-    return interaction.reply({
-      content: `⚠️ you have open ticket: ${existing}`,
-      ephemeral: true,
-    });
-  }
-
-  // Tworzenie kanału
   const ticketChannel = await interaction.guild.channels.create({
-    name: ticketName.toLowerCase(),
+    name: `ticket-${user.username}`,
     type: ChannelType.GuildText,
     parent: categoryId,
     permissionOverwrites: [
       {
-        id: interaction.guild.roles.everyone,
+        id: interaction.guild.id,
         deny: [PermissionsBitField.Flags.ViewChannel],
       },
       {
-        id: interaction.user.id,
+        id: user.id,
         allow: [
           PermissionsBitField.Flags.ViewChannel,
           PermissionsBitField.Flags.SendMessages,
@@ -127,13 +221,10 @@ client.on("interactionCreate", async (interaction) => {
   });
 
   const embed = new EmbedBuilder()
-    .setColor("#ff69b4")
-    .setTitle(title)
-    .setDescription(
-      `🔔 **ticket opened by:** ${interaction.user}\n\n` +
-      `The support team will contact you shortly.`
-    )
-    .setFooter({ text: "DonutOne • Ticket System" })
+    .setColor("#00ffcc")
+    .setTitle(`${title}`)
+    .setDescription(description)
+    .setFooter({ text: `Ticket created by ${user.tag}` })
     .setTimestamp();
 
   const buttons = new ActionRowBuilder().addComponents(
@@ -147,40 +238,52 @@ client.on("interactionCreate", async (interaction) => {
       .setStyle(ButtonStyle.Danger),
     new ButtonBuilder()
       .setCustomId("claim_ticket")
-      .setLabel("🙋 Take Ticket")
+      .setLabel("🙋 Claim Ticket")
       .setStyle(ButtonStyle.Primary)
   );
 
   await ticketChannel.send({
-    content: `<@1434655987733631047> | ${interaction.user}`, // podmień ROLE_ID_SUPPORT na rolę staffu
+    content: `🎟️ <@${user.id}>`,
     embeds: [embed],
     components: [buttons],
   });
 
   await interaction.reply({
-    content: `✅ Ticket utworzony: ${ticketChannel}`,
+    content: `✅ Your ticket has been created: ${ticketChannel}`,
     ephemeral: true,
   });
 });
 
-// ===========================================
-// 3️⃣ Obsługa przycisków (zamknij/usuń/przejmij)
-// ===========================================
+// === PRZYCISKI W TICKETACH ===
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
-  const channel = interaction.channel;
 
-  if (interaction.customId === "close_ticket") {
-    await interaction.reply({ content: "🔒 Ticket close.", ephemeral: true });
-    await channel.permissionOverwrites.edit(interaction.user.id, {
-      ViewChannel: false,
+  const { customId, channel, user } = interaction;
+
+  if (customId === "close_ticket") {
+    await channel.permissionOverwrites.edit(user.id, {
+      SendMessages: false,
     });
-  } else if (interaction.customId === "delete_ticket") {
-    await interaction.reply({ content: "🗑️ The ticket will be deleted in 5 seconds.", ephemeral: true });
-    setTimeout(() => channel.delete().catch(() => {}), 5000);
-  } else if (interaction.customId === "claim_tickett") {
-    await interaction.reply({ content: `🙋 Ticket taken over by ${interaction.user}.`, ephemeral: false });
+    await interaction.reply({
+      content: "🔒 Ticket closed.",
+      ephemeral: true,
+    });
+  }
+
+  if (customId === "delete_ticket") {
+    await interaction.reply({ content: "🗑️ Deleting ticket...", ephemeral: true });
+    setTimeout(() => channel.delete(), 3000);
+  }
+
+  if (customId === "claim_ticket") {
+    await interaction.reply({
+      content: `🙋 Ticket claimed by <@${user.id}>.`,
+    });
   }
 });
 
-client.login(TOKEN);
+client.once("ready", () => {
+  console.log(`✅ Logged in as ${client.user.tag}`);
+});
+
+client.login(process.env.BOT_TOKEN);
