@@ -179,5 +179,16 @@ client.on("messageCreate", async (message) => {
 client.once("ready", () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
 });
+// na końcu bot.js — tylko jeśli deployujesz jako Render Web Service
+const http = require('http');
 
+const PORT = process.env.PORT || 3000;
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('OK');
+});
+
+server.listen(PORT, () => {
+  console.log(`Health server listening on port ${PORT}`);
+});
 client.login(TOKEN);
