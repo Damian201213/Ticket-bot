@@ -9,7 +9,6 @@ const {
   PermissionsBitField
 } = require("discord.js");
 require("dotenv").config();
-`**1️⃣ Be Respectful**
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
