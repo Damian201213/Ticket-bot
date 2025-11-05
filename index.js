@@ -217,7 +217,7 @@ To buy or sell make a <#1434615744703889602>
       .setColor("#0099ff")
       .setTitle("📜 DonutOne Server Rules")
       .setDescription(
-**5️⃣ No Advertising or Self-Promotion Without Permission**
+`**5️⃣ No Advertising or Self-Promotion Without Permission**
 Don’t advertise your own server, social media, or products without getting approval from admins first.  
 💡 *Prevents spammy self-promotion and keeps chat clean.*
 
@@ -228,7 +228,8 @@ Stay on-topic and use the correct channels for different conversations.
 **7️⃣ No Personal Information**
 Don’t share personal information, including addresses, phone numbers, or private details about yourself or others.  
 💡 *Protects members' privacy and safety.*`
-      )
+)
+
       .setFooter({ text: "DonutOne • Server Rules" })
       .setTimestamp();
 
