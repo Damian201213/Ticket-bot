@@ -312,14 +312,15 @@ Don’t share personal information, including addresses, phone numbers, or priva
 
     const row = new ActionRowBuilder().addComponents(menu);
 
-client.on('interactionCreate', async (interaction) => {
+client.on('interactionCreate', async (interaction) => {  // ✅ dodaj async
     if (!interaction.isButton()) return;
 
     if (interaction.customId === 'support') {
-        await interaction.reply({
-            content: 'Formularz wsparcia!',
-            ephemeral: true
-        });
+        const modal = new ModalBuilder()
+            .setCustomId('supportModal')
+            .setTitle('Formularz wsparcia');
+
+        await interaction.showModal(modal); // teraz działa ✅
     }
 });
 
