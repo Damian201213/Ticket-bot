@@ -289,13 +289,13 @@ client.on("interactionCreate", async (interaction) => {
   if (interaction.isChatInputCommand() && interaction.commandName === "panel") {
     const embed = new EmbedBuilder()
       .setColor("#00ffff")
-      .setTitle("🎫 Tickets are used to provide support to the community. please do not create a troll ticket or misuse it.
+      .setTitle(`🎫 Tickets are used to provide support to the community. please do not create a troll ticket or misuse it.
                  
                 🎁 Giveaway Claim: Open a ticket if you want to claim things you won you only have 24 Hours to claim after the giveaway ended.
 
                 🤝 Partnerships/support: Open a ticket if you need any kind of support with getting partnerships or for any questions you have.
 
-                💸 Buy/Sell: Open a ticket if you want to sell us spawners or buy from us.")
+                💸 Buy/Sell: Open a ticket if you want to sell us spawners or buy from us.`)
       .setDescription("🎫 | Select a category below to open a ticket.")
       .setImage("https://cdn.discordapp.com/attachments/1432012658693116028/1434959872184549648/file_00000000ce9c71f7806959b9a6389aae.png?ex=690c3445&is=690ae2c5&hm=53f170fa91be03b6e5809bd5aab72d863272e409b5559a5aa5410aa8a5a563b2&"); // <- możesz tu dodać swoje zdjęcie
 
