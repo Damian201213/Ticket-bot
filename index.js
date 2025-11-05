@@ -519,9 +519,9 @@ if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select"
     if (interaction.customId === "delete_ticket") {
       await interaction.reply({ content: "🗑️ Deleting ticket...", ephemeral: true });
       setTimeout(() => interaction.channel.delete(), 3000);
-    }
   }
 });
+
 // ===============================
 // 5️⃣ Logowanie bota
 // ===============================
