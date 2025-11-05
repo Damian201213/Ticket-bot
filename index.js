@@ -9,6 +9,7 @@ const {
   PermissionsBitField
 } = require("discord.js");
 require("dotenv").config();
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -24,9 +25,13 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
 const CLEAR_CHANNEL_ID = process.env.CLEAR_CHANNEL_ID;
 
-`**1️⃣ Be Respectful**
-💡 *This rule sets the tone for a positive and welcoming environment. It prevents toxic behavior that could drive people away.
-    Treat all members with kindness and respect. No bullying, harassment, hate speech, or personal attacks.  *
+// ===============================
+// 📜 Tekst zasad (poprawny zapis)
+// ===============================
+const RULES_TEXT = `
+**1️⃣ Be Respectful**
+Treat all members with kindness and respect. No bullying, harassment, hate speech, or personal attacks.  
+💡 *This rule sets the tone for a positive and welcoming environment. It prevents toxic behavior that could drive people away.*
 
 **2️⃣ No Spamming or Flooding**
 Do not spam messages, images, or links. Avoid flooding the chat with excessive messages.  
@@ -39,6 +44,7 @@ No explicit, sexually suggestive, or inappropriate content in any channels unles
 **4️⃣ Follow Discord’s Terms of Service**
 Always adhere to Discord’s Terms of Service and Community Guidelines.  
 💡 *This is a non-negotiable rule that protects your server from being taken down by Discord for violations of its terms.*
+`;
 
 // ===============================
 // 1️⃣ Rejestracja komendy /clear
@@ -81,7 +87,7 @@ client.on("guildMemberAdd", async (member) => {
     .setTitle("🍩 DonutOne × WELCOME")
     .setDescription(
       `✨ Welcome **${member.user.username}** to **DonutOne**!\n\n` +
-      `👥 You are member **#${member.guild.memberCount}** on our server!` +
+      `👥 You are member **#${member.guild.memberCount}** on our server!\n\n` +
       `🌟 We hope you’ll stay with us for a long time!`
     )
     .setThumbnail(member.user.displayAvatarURL({ extension: "png", size: 256 }))
@@ -90,7 +96,6 @@ client.on("guildMemberAdd", async (member) => {
 
   await channel.send({ embeds: [embed] });
 });
-
 // ===============================
 // 3️⃣ Obsługa komendy /clear
 // ===============================
