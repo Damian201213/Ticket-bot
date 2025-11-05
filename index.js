@@ -1,25 +1,27 @@
 // === bot.js ===
-const {
-  Client,
-  GatewayIntentBits,
-  EmbedBuilder,
+const { 
+  Client, 
+  GatewayIntentBits, 
+  Partials,
   SlashCommandBuilder,
+  Routes,
   REST,
+  EmbedBuilder,
+  TextInputBuilder,
+  TextInputStyle,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
   ChannelType,
-  Routes,
-  PermissionsBitField
-} = require("discord.js");
-require("dotenv").config();
+  PermissionFlagsBits
+} = require('discord.js');
+require('dotenv').config();
 
 // === KONFIGURACJA KLIENTA ===
 const client = new Client({
-  intents: [
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  partials: [Partials.Channel]
+});
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMembers,
@@ -27,6 +29,10 @@ const client = new Client({
   ],
 });
 
+const TOKEN = process.env.TOKEN; // 🔹 Token bota z .env
+const CLIENT_ID = process.env.CLIENT_ID; // 🔹 ID bota
+const GUILD_ID = process.env.GUILD_ID; // 🔹 ID serwera
+const LOG_CHANNEL_ID = process.env.LOG_CHANNEL_ID; // 🔹 ID kanału logów ticketów
 const TOKEN = process.env.BOT_TOKEN;
 const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -275,268 +281,252 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('OK');
 });
+// === /panel command ===
+client.once("ready", () => {
+  console.log(`🤖 Logged in as ${client.user.tag}`);
+});
 
-
-// === DODAJEMY /panel DO JUŻ ISTNIEJĄCYCH KOMEND ===
-commands.push(
-  new SlashCommandBuilder()
-    .setName("panel")
-    .setDescription("📩 Wyślij panel ticketów (dla administratorów)")
-    .toJSON()
-);
-
-(async () => {
-  try {
-    console.log("🔄 Rejestrowanie komendy /panel...");
-    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {
-      body: commands,
-    });
-    console.log("✅ Komenda /panel zarejestrowana!");
-  } catch (err) {
-    console.error("❌ Błąd rejestracji komend:", err);
-  }
-})();
-
-// === OBSŁUGA KOMENDY /panel ===
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName !== "panel") return;
+  // ======== /panel command ========
+  if (interaction.isChatInputCommand() && interaction.commandName === "panel") {
+    const embed = new EmbedBuilder()
+      .setColor("#00ffff")
+      .setTitle("🎫 Tickets are used to provide support to the community. please do not create a troll ticket or misuse it.
+                 
+                🎁 Giveaway Claim: Open a ticket if you want to claim things you won you only have 24 Hours to claim after the giveaway ended.
 
-  // tylko adminy
-  if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-    return interaction.reply({
-      content: "🚫 Nie masz uprawnień do tej komendy.",
+                🤝 Partnerships/support: Open a ticket if you need any kind of support with getting partnerships or for any questions you have.
+
+                💸 Buy/Sell: Open a ticket if you want to sell us spawners or buy from us.")
+      .setDescription("🎫 | Select a category below to open a ticket.")
+      .setImage("https://cdn.discordapp.com/attachments/1432012658693116028/1434959872184549648/file_00000000ce9c71f7806959b9a6389aae.png?ex=690c3445&is=690ae2c5&hm=53f170fa91be03b6e5809bd5aab72d863272e409b5559a5aa5410aa8a5a563b2&"); // <- możesz tu dodać swoje zdjęcie
+
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId("ticket_select")
+      .setPlaceholder("Select ticket category")
+      .addOptions([
+        {
+          label: "💸 Buy/Sell",
+          description: "Open a ticket if you want to sell or buy something.",
+          value: "buy_sell",
+        },
+        {
+          label: "🎁 Giveaway Claim",
+          description: "Open a ticket to claim your giveaway reward.",
+          value: "giveaway",
+        },
+        {
+          label: "👨‍💼 Sponsor Loot Drop",
+          description: "Open a ticket if you want to sponsor a drop.",
+          value: "sponsor",
+        },
+        {
+          label: "📦 Pickup Item",
+          description: "Open a ticket to pick up purchased items.",
+          value: "pickup",
+        },
+      ]);
+
+    const row = new ActionRowBuilder().addComponents(menu);
+
+    await interaction.reply({
+      embeds: [embed],
+      components: [row],
+    });
+  }
+
+  // ======== CATEGORY SELECT ========
+  if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select") {
+    const value = interaction.values[0];
+    let modal;
+
+    // 💸 BUY/SELL FORM
+    if (value === "buy_sell") {
+      modal = new ModalBuilder()
+        .setCustomId("modal_buy_sell")
+        .setTitle("💸 Buy/Sell Ticket");
+
+      const ign = new TextInputBuilder()
+        .setCustomId("ign")
+        .setLabel("Your Minecraft IGN")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
+      const details = new TextInputBuilder()
+        .setCustomId("details")
+        .setLabel("What do you want to buy/sell?")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+      
+      const details = new TextInputBuilder()
+        .setCustomId("details")
+        .setLabel("what spawners")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(ign),
+        new ActionRowBuilder().addComponents(details)
+      );
+    }
+
+    // 🎁 GIVEAWAY CLAIM FORM
+    if (value === "giveaway") {
+      modal = new ModalBuilder()
+        .setCustomId("modal_giveaway")
+        .setTitle("🎁 Giveaway Claim");
+
+      const ign = new TextInputBuilder()
+        .setCustomId("ign")
+        .setLabel("Your Minecraft IGN")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
+      const prize = new TextInputBuilder()
+        .setCustomId("prize")
+        .setLabel("What did you win?")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(ign),
+        new ActionRowBuilder().addComponents(prize)
+      );
+    }
+
+    // 👨‍💼 SPONSOR FORM
+    if (value === "sponsor") {
+      modal = new ModalBuilder()
+        .setCustomId("modal_sponsor")
+        .setTitle("👨‍💼 Sponsor Loot Drop");
+
+      const ign = new TextInputBuilder()
+        .setCustomId("ign")
+        .setLabel("Your Minecraft IGN")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
+      const offer = new TextInputBuilder()
+        .setCustomId("offer")
+        .setLabel("Which items would you like to give?")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(ign),
+        new ActionRowBuilder().addComponents(offer)
+      );
+    }
+
+    // 📦 PICKUP ITEM FORM
+    if (value === "pickup") {
+      modal = new ModalBuilder()
+        .setCustomId("modal_pickup")
+        .setTitle("📦 Pickup Purchased Item");
+
+      const ign = new TextInputBuilder()
+        .setCustomId("ign")
+        .setLabel("Your Minecraft IGN")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
+      const item = new TextInputBuilder()
+        .setCustomId("item")
+        .setLabel("What item did you purchase?")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(ign),
+        new ActionRowBuilder().addComponents(item)
+      );
+    }
+
+    await interaction.showModal(modal);
+  }
+
+  // ======== FORM SUBMIT ========
+  if (interaction.isModalSubmit()) {
+    const user = interaction.user;
+    let title, description;
+
+    if (interaction.customId === "modal_buy_sell") {
+      title = "💸 Buy/Sell Ticket";
+      description = `**IGN:** ${interaction.fields.getTextInputValue("ign")}\n**Details:** ${interaction.fields.getTextInputValue("details")}`;
+    }
+    if (interaction.customId === "modal_giveaway") {
+      title = "🎁 Giveaway Claim";
+      description = `**IGN:** ${interaction.fields.getTextInputValue("ign")}\n**Prize:** ${interaction.fields.getTextInputValue("prize")}`;
+    }
+    if (interaction.customId === "modal_sponsor") {
+      title = "👨‍💼 Sponsor Loot Drop";
+      description = `**IGN:** ${interaction.fields.getTextInputValue("ign")}\n**Offer:** ${interaction.fields.getTextInputValue("offer")}`;
+    }
+    if (interaction.customId === "modal_pickup") {
+      title = "📦 Pickup Purchased Item";
+      description = `**IGN:** ${interaction.fields.getTextInputValue("ign")}\n**Item:** ${interaction.fields.getTextInputValue("item")}`;
+    }
+
+    const channel = await interaction.guild.channels.create({
+      name: `ticket-${user.username}`,
+      type: ChannelType.GuildText,
+      parent: process.env.CATEGORY_ID || null,
+      permissionOverwrites: [
+        { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
+        {
+          id: user.id,
+          allow: [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages,
+            PermissionsBitField.Flags.ReadMessageHistory,
+          ],
+        },
+      ],
+    });
+
+    const embed = new EmbedBuilder()
+      .setColor("#00ffcc")
+      .setTitle(title)
+      .setDescription(description)
+      .setFooter({ text: `Ticket created by ${user.tag}` })
+      .setTimestamp();
+
+    const buttons = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("close_ticket")
+        .setLabel("🔒 Close Ticket")
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId("delete_ticket")
+        .setLabel("🗑️ Delete Ticket")
+        .setStyle(ButtonStyle.Danger)
+    );
+
+    await channel.send({
+      content: `<@${user.id}>`,
+      embeds: [embed],
+      components: [buttons],
+    });
+
+    await interaction.reply({
+      content: `✅ Your ticket has been created: ${channel}`,
       ephemeral: true,
     });
   }
 
-  const embed = new EmbedBuilder()
-    .setColor("#00ffff")
-    .setTitle("🎫 Ticket Panel")
-    .setDescription("Wybierz kategorię, aby otworzyć ticket.");
+  // ======== CLOSE / DELETE ========
+  if (interaction.isButton()) {
+    if (interaction.customId === "close_ticket") {
+      await interaction.channel.permissionOverwrites.edit(interaction.user.id, { SendMessages: false });
+      await interaction.reply({ content: "🔒 Ticket closed.", ephemeral: true });
+    }
 
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("buy_sell")
-      .setLabel("💸 Buy/Sell Skellys")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("giveaway")
-      .setLabel("🎁 Claim Giveaway")
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId("sponsor")
-      .setLabel("👨‍💼 Sponsor Loot Drop")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId("pickup")
-      .setLabel("📩 Pick Up Purchased Item")
-      .setStyle(ButtonStyle.Danger)
-  );
-
-  await interaction.channel.send({ embeds: [embed], components: [row] });
-  await interaction.reply({ content: "✅ Panel ticketów wysłany!", ephemeral: true });
-});
-
-// === OBSŁUGA PRZYCISKÓW (otwieranie modali) ===
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isButton()) return;
-  const { customId } = interaction;
-  let modal;
-
-  if (customId === "buy_sell") {
-    modal = new ModalBuilder()
-      .setCustomId("modal_buy_sell")
-      .setTitle("💸 Buy/Sell Skellys Ticket");
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("ign")
-          .setLabel("Your Minecraft IGN")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-      ),
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("amount")
-          .setLabel("Amount (or what you're selling)")
-          .setStyle(TextInputStyle.Paragraph)
-          .setRequired(true)
-      )
-    );
-  }
-
-  if (customId === "giveaway") {
-    modal = new ModalBuilder()
-      .setCustomId("modal_giveaway")
-      .setTitle("🎁 Claim Giveaway");
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("ign")
-          .setLabel("Your Minecraft IGN")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-      ),
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("reward")
-          .setLabel("What did you win?")
-          .setStyle(TextInputStyle.Paragraph)
-          .setRequired(true)
-      )
-    );
-  }
-
-  if (customId === "sponsor") {
-    modal = new ModalBuilder()
-      .setCustomId("modal_sponsor")
-      .setTitle("👨‍💼 Sponsor Loot Drop");
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("ign")
-          .setLabel("Your Minecraft IGN")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-      ),
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("details")
-          .setLabel("What do you want to sponsor?")
-          .setStyle(TextInputStyle.Paragraph)
-          .setRequired(true)
-      )
-    );
-  }
-
-  if (customId === "pickup") {
-    modal = new ModalBuilder()
-      .setCustomId("modal_pickup")
-      .setTitle("📩 Pick Up Purchased Item");
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("ign")
-          .setLabel("Your Minecraft IGN")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-      ),
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("item")
-          .setLabel("What item did you purchase?")
-          .setStyle(TextInputStyle.Paragraph)
-          .setRequired(true)
-      )
-    );
-  }
-
-  await interaction.showModal(modal);
-});
-
-// === TWORZENIE TICKETU ===
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isModalSubmit()) return;
-
-  const user = interaction.user;
-  let categoryId, title, description;
-
-  if (interaction.customId === "modal_buy_sell") {
-    categoryId = process.env.CATEGORY_BUY_SELL_ID;
-    title = "💸 Buy/Sell Skellys";
-    description = `IGN: **${interaction.fields.getTextInputValue("ign")}**\nAmount/Offer: **${interaction.fields.getTextInputValue("amount")}**`;
-  }
-
-  if (interaction.customId === "modal_giveaway") {
-    categoryId = process.env.CATEGORY_GIVEAWAY_ID;
-    title = "🎁 Claim Giveaway";
-    description = `IGN: **${interaction.fields.getTextInputValue("ign")}**\nReward: **${interaction.fields.getTextInputValue("reward")}**`;
-  }
-
-  if (interaction.customId === "modal_sponsor") {
-    categoryId = process.env.CATEGORY_SPONSOR_ID;
-    title = "👨‍💼 Sponsor Loot Drop";
-    description = `IGN: **${interaction.fields.getTextInputValue("ign")}**\nDetails: **${interaction.fields.getTextInputValue("details")}**`;
-  }
-
-  if (interaction.customId === "modal_pickup") {
-    categoryId = process.env.CATEGORY_PICKUP_ID;
-    title = "📩 Pick Up Purchased Item";
-    description = `IGN: **${interaction.fields.getTextInputValue("ign")}**\nItem: **${interaction.fields.getTextInputValue("item")}**`;
-  }
-
-  const ticketChannel = await interaction.guild.channels.create({
-    name: `ticket-${user.username}`,
-    type: ChannelType.GuildText,
-    parent: categoryId,
-    permissionOverwrites: [
-      { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-      {
-        id: user.id,
-        allow: [
-          PermissionsBitField.Flags.ViewChannel,
-          PermissionsBitField.Flags.SendMessages,
-          PermissionsBitField.Flags.ReadMessageHistory,
-        ],
-      },
-    ],
-  });
-
-  const embed = new EmbedBuilder()
-    .setColor("#00ffcc")
-    .setTitle(title)
-    .setDescription(description)
-    .setFooter({ text: `Ticket created by ${user.tag}` })
-    .setTimestamp();
-
-  const buttons = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("close_ticket")
-      .setLabel("🔒 Close Ticket")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId("delete_ticket")
-      .setLabel("🗑️ Delete Ticket")
-      .setStyle(ButtonStyle.Danger),
-    new ButtonBuilder()
-      .setCustomId("claim_ticket")
-      .setLabel("🙋 Claim Ticket")
-      .setStyle(ButtonStyle.Primary)
-  );
-
-  await ticketChannel.send({
-    content: `🎟️ <@${user.id}>`,
-    embeds: [embed],
-    components: [buttons],
-  });
-
-  await interaction.reply({
-    content: `✅ Your ticket has been created: ${ticketChannel}`,
-    ephemeral: true,
-  });
-});
-
-// === OBSŁUGA PRZYCISKÓW W TICKETACH ===
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isButton()) return;
-  const { customId, channel, user } = interaction;
-
-  if (customId === "close_ticket") {
-    await channel.permissionOverwrites.edit(user.id, { SendMessages: false });
-    await interaction.reply({ content: "🔒 Ticket closed.", ephemeral: true });
-  }
-
-  if (customId === "delete_ticket") {
-    await interaction.reply({ content: "🗑️ Deleting ticket...", ephemeral: true });
-    setTimeout(() => channel.delete(), 3000);
-  }
-
-  if (customId === "claim_ticket") {
-    await interaction.reply({ content: `🙋 Ticket claimed by <@${user.id}>.` });
+    if (interaction.customId === "delete_ticket") {
+      await interaction.reply({ content: "🗑️ Deleting ticket...", ephemeral: true });
+      setTimeout(() => interaction.channel.delete(), 3000);
+    }
   }
 });
-
 // === START BOTA ===
 client.once("ready", () => {
   console.log(`🤖 Zalogowano jako ${client.user.tag}`);
