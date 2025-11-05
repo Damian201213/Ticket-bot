@@ -19,25 +19,23 @@ require('dotenv').config();
 
 // === KONFIGURACJA KLIENTA ===
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
-  partials: [Partials.Channel]
-});
+  intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.MessageContent
   ],
+  partials: [Partials.Channel]
 });
 
-const TOKEN = process.env.TOKEN; // 🔹 Token bota z .env
-const CLIENT_ID = process.env.CLIENT_ID; // 🔹 ID bota
-const GUILD_ID = process.env.GUILD_ID; // 🔹 ID serwera
-const LOG_CHANNEL_ID = process.env.LOG_CHANNEL_ID; // 🔹 ID kanału logów ticketów
-const TOKEN = process.env.BOT_TOKEN;
-const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID;
+// === ZMIENNE ŚRODOWISKOWE ===
+const TOKEN = process.env.TOKEN || process.env.BOT_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
+const LOG_CHANNEL_ID = process.env.LOG_CHANNEL_ID;
+const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID;
 const CLEAR_CHANNEL_ID = process.env.CLEAR_CHANNEL_ID;
+
 
 // ===============================
 // 📜 Tekst zasad (poprawny zapis)
