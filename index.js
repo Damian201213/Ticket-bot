@@ -81,7 +81,7 @@ client.on("guildMemberAdd", async (member) => {
     .setTitle("🍩 DonutOne × WELCOME")
     .setDescription(
       `✨ Welcome **${member.user.username}** to **DonutOne**!\n\n` +
-      `👥 You are member **#${member.guild.memberCount}** on our server!\n\n` +
+      `👥 You are member **#${member.guild.memberCount}** on our server!` +
       `🌟 We hope you’ll stay with us for a long time!`
     )
     .setThumbnail(member.user.displayAvatarURL({ extension: "png", size: 256 }))
