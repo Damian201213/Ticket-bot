@@ -530,8 +530,9 @@ client.once("ready", () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
 });
 
-// ===============================
-// Keep-alive (Render)
+client.login(TOKEN);
+
+// Keep-alive server for Render
 const http = require("http");
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
