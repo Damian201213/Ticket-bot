@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 const {
   Client,
   GatewayIntentBits,
@@ -10,57 +10,90 @@ const {
   TextInputBuilder,
   TextInputStyle,
   ChannelType,
-  PermissionsBitField
-} = require('discord.js');
+  PermissionsBitField,
+  SlashCommandBuilder,
+  REST,
+  Routes,
+} = require("discord.js");
 
+// === KONFIGURACJA KLIENTA ===
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
-client.once('ready', () => {
-  console.log(`✅ Zalogowano jako ${client.user.tag}`);
-});
+const TOKEN = process.env.BOT_TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
+const GUILD_ID = process.env.GUILD_ID;
 
-// === PANEL KOMENDY ===
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
-  if (message.content === "!panel") {
-    const embed = new EmbedBuilder()
-      .setColor("#00ffff")
-      .setTitle("🎫 Ticket Panel")
-      .setDescription("Wybierz kategorię, aby otworzyć ticket.");
+// === REJESTRACJA KOMENDY /panel ===
+const commands = [
+  new SlashCommandBuilder()
+    .setName("panel")
+    .setDescription("📩 Wyślij panel ticketów (dla administratorów)"),
+].map((cmd) => cmd.toJSON());
 
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("buy_sell")
-        .setLabel("💸 Buy/Sell Skellys")
-        .setStyle(ButtonStyle.Primary),
-      new ButtonBuilder()
-        .setCustomId("giveaway")
-        .setLabel("🎁 Claim Giveaway")
-        .setStyle(ButtonStyle.Success),
-      new ButtonBuilder()
-        .setCustomId("sponsor")
-        .setLabel("👨‍💼 Sponsor Loot Drop")
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId("pickup")
-        .setLabel("📩 Pick Up Purchased Item")
-        .setStyle(ButtonStyle.Danger)
-    );
+const rest = new REST({ version: "10" }).setToken(TOKEN);
 
-    await message.channel.send({ embeds: [embed], components: [row] });
+(async () => {
+  try {
+    console.log("🔄 Rejestrowanie komendy /panel...");
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {
+      body: commands,
+    });
+    console.log("✅ Komenda /panel zarejestrowana!");
+  } catch (err) {
+    console.error("❌ Błąd rejestracji komend:", err);
   }
+})();
+
+// === OBSŁUGA KOMENDY /panel ===
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+  if (interaction.commandName !== "panel") return;
+
+  // tylko adminy
+  if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
+    return interaction.reply({
+      content: "🚫 Nie masz uprawnień do tej komendy.",
+      ephemeral: true,
+    });
+  }
+
+  const embed = new EmbedBuilder()
+    .setColor("#00ffff")
+    .setTitle("🎫 Ticket Panel")
+    .setDescription("Wybierz kategorię, aby otworzyć ticket.");
+
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("buy_sell")
+      .setLabel("💸 Buy/Sell Skellys")
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId("giveaway")
+      .setLabel("🎁 Claim Giveaway")
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId("sponsor")
+      .setLabel("👨‍💼 Sponsor Loot Drop")
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId("pickup")
+      .setLabel("📩 Pick Up Purchased Item")
+      .setStyle(ButtonStyle.Danger)
+  );
+
+  await interaction.channel.send({ embeds: [embed], components: [row] });
+  await interaction.reply({ content: "✅ Panel ticketów wysłany!", ephemeral: true });
 });
 
-// === INTERAKCJA — FORMULARZ ===
+// === OBSŁUGA PRZYCISKÓW (otwieranie modali) ===
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
-
   const { customId } = interaction;
   let modal;
 
@@ -68,22 +101,21 @@ client.on("interactionCreate", async (interaction) => {
     modal = new ModalBuilder()
       .setCustomId("modal_buy_sell")
       .setTitle("💸 Buy/Sell Skellys Ticket");
-
-    const ign = new TextInputBuilder()
-      .setCustomId("ign")
-      .setLabel("Your Minecraft IGN")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    const amount = new TextInputBuilder()
-      .setCustomId("amount")
-      .setLabel("Amount (or what you're selling)")
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(true);
-
     modal.addComponents(
-      new ActionRowBuilder().addComponents(ign),
-      new ActionRowBuilder().addComponents(amount)
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("ign")
+          .setLabel("Your Minecraft IGN")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+      ),
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("amount")
+          .setLabel("Amount (or what you're selling)")
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(true)
+      )
     );
   }
 
@@ -91,22 +123,21 @@ client.on("interactionCreate", async (interaction) => {
     modal = new ModalBuilder()
       .setCustomId("modal_giveaway")
       .setTitle("🎁 Claim Giveaway");
-
-    const ign = new TextInputBuilder()
-      .setCustomId("ign")
-      .setLabel("Your Minecraft IGN")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    const reward = new TextInputBuilder()
-      .setCustomId("reward")
-      .setLabel("What did you win?")
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(true);
-
     modal.addComponents(
-      new ActionRowBuilder().addComponents(ign),
-      new ActionRowBuilder().addComponents(reward)
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("ign")
+          .setLabel("Your Minecraft IGN")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+      ),
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("reward")
+          .setLabel("What did you win?")
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(true)
+      )
     );
   }
 
@@ -114,22 +145,21 @@ client.on("interactionCreate", async (interaction) => {
     modal = new ModalBuilder()
       .setCustomId("modal_sponsor")
       .setTitle("👨‍💼 Sponsor Loot Drop");
-
-    const ign = new TextInputBuilder()
-      .setCustomId("ign")
-      .setLabel("Your Minecraft IGN")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    const details = new TextInputBuilder()
-      .setCustomId("details")
-      .setLabel("What things do you want to give?")
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(true);
-
     modal.addComponents(
-      new ActionRowBuilder().addComponents(ign),
-      new ActionRowBuilder().addComponents(details)
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("ign")
+          .setLabel("Your Minecraft IGN")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+      ),
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("details")
+          .setLabel("What do you want to sponsor?")
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(true)
+      )
     );
   }
 
@@ -137,22 +167,21 @@ client.on("interactionCreate", async (interaction) => {
     modal = new ModalBuilder()
       .setCustomId("modal_pickup")
       .setTitle("📩 Pick Up Purchased Item");
-
-    const ign = new TextInputBuilder()
-      .setCustomId("ign")
-      .setLabel("Your Minecraft IGN")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    const item = new TextInputBuilder()
-      .setCustomId("item")
-      .setLabel("What item did you purchase?")
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(true);
-
     modal.addComponents(
-      new ActionRowBuilder().addComponents(ign),
-      new ActionRowBuilder().addComponents(item)
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("ign")
+          .setLabel("Your Minecraft IGN")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+      ),
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("item")
+          .setLabel("What item did you purchase?")
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(true)
+      )
     );
   }
 
@@ -196,12 +225,15 @@ client.on("interactionCreate", async (interaction) => {
     parent: categoryId,
     permissionOverwrites: [
       { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-      { id: user.id, allow: [
-        PermissionsBitField.Flags.ViewChannel,
-        PermissionsBitField.Flags.SendMessages,
-        PermissionsBitField.Flags.ReadMessageHistory
-      ]}
-    ]
+      {
+        id: user.id,
+        allow: [
+          PermissionsBitField.Flags.ViewChannel,
+          PermissionsBitField.Flags.SendMessages,
+          PermissionsBitField.Flags.ReadMessageHistory,
+        ],
+      },
+    ],
   });
 
   const embed = new EmbedBuilder()
@@ -229,19 +261,18 @@ client.on("interactionCreate", async (interaction) => {
   await ticketChannel.send({
     content: `🎟️ <@${user.id}>`,
     embeds: [embed],
-    components: [buttons]
+    components: [buttons],
   });
 
   await interaction.reply({
     content: `✅ Your ticket has been created: ${ticketChannel}`,
-    ephemeral: true
+    ephemeral: true,
   });
 });
 
-// === OBSŁUGA PRZYCISKÓW TICKETU ===
+// === OBSŁUGA PRZYCISKÓW W TICKETACH ===
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
-
   const { customId, channel, user } = interaction;
 
   if (customId === "close_ticket") {
@@ -259,4 +290,9 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-client.login(process.env.BOT_TOKEN);
+// === START BOTA ===
+client.once("ready", () => {
+  console.log(`🤖 Zalogowano jako ${client.user.tag}`);
+});
+
+client.login(TOKEN);
