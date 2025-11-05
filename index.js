@@ -324,115 +324,120 @@ client.on('interactionCreate', async (interaction) => {  // ✅ dodaj async
     }
 });
 
-  // ======== CATEGORY SELECT ========
-  if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select") {
-    const value = interaction.values[0];
-    let modal;
+// ======== CATEGORY SELECT ========
+if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select") {
+  const value = interaction.values[0];
+  let modal;
 
-    // 💸 BUY/SELL FORM
-    if (value === "buy_sell") {
-      modal = new ModalBuilder()
-        .setCustomId("modal_buy_sell")
-        .setTitle("💸 Buy/Sell Ticket");
+  // 💸 BUY/SELL FORM
+  if (value === "buy_sell") {
+    modal = new ModalBuilder()
+      .setCustomId("modal_buy_sell")
+      .setTitle("💸 Buy/Sell Ticket");
 
-      const ign = new TextInputBuilder()
-        .setCustomId("ign")
-        .setLabel("Your Minecraft IGN")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
+    const ign = new TextInputBuilder()
+      .setCustomId("ign")
+      .setLabel("Your Minecraft IGN")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
 
-      const details = new TextInputBuilder()
-        .setCustomId("details")
-        .setLabel("What do you want to buy/sell?")
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true);
-      
-      const spawner = new TextInputBuilder()
-        .setCustomId("spawner")
-        .setLabel("what spawners")
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true);
+    const details = new TextInputBuilder()
+      .setCustomId("details")
+      .setLabel("What do you want to buy/sell?")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
 
-      modal.addComponents(
-        new ActionRowBuilder().addComponents(ign),
-        new ActionRowBuilder().addComponents(details)
-      );
-    }
+    const spawner = new TextInputBuilder()
+      .setCustomId("spawner")
+      .setLabel("What spawners?")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
 
-    // 🎁 GIVEAWAY CLAIM FORM
-    if (value === "giveaway") {
-      modal = new ModalBuilder()
-        .setCustomId("modal_giveaway")
-        .setTitle("🎁 Giveaway Claim");
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(ign),
+      new ActionRowBuilder().addComponents(details),
+      new ActionRowBuilder().addComponents(spawner)
+    );
+  }
 
-      const ign = new TextInputBuilder()
-        .setCustomId("ign")
-        .setLabel("Your Minecraft IGN")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
+  // 🎁 GIVEAWAY CLAIM FORM
+  if (value === "giveaway") {
+    modal = new ModalBuilder()
+      .setCustomId("modal_giveaway")
+      .setTitle("🎁 Giveaway Claim");
 
-      const prize = new TextInputBuilder()
-        .setCustomId("prize")
-        .setLabel("What did you win?")
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true);
+    const ign = new TextInputBuilder()
+      .setCustomId("ign")
+      .setLabel("Your Minecraft IGN")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
 
-      modal.addComponents(
-        new ActionRowBuilder().addComponents(ign),
-        new ActionRowBuilder().addComponents(prize)
-      );
-    }
+    const prize = new TextInputBuilder()
+      .setCustomId("prize")
+      .setLabel("What did you win?")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
 
-    // 👨‍💼 SPONSOR FORM
-    if (value === "sponsor") {
-      modal = new ModalBuilder()
-        .setCustomId("modal_sponsor")
-        .setTitle("👨‍💼 Sponsor Loot Drop");
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(ign),
+      new ActionRowBuilder().addComponents(prize)
+    );
+  }
 
-      const ign = new TextInputBuilder()
-        .setCustomId("ign")
-        .setLabel("Your Minecraft IGN")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
+  // 👨‍💼 SPONSOR FORM
+  if (value === "sponsor") {
+    modal = new ModalBuilder()
+      .setCustomId("modal_sponsor")
+      .setTitle("👨‍💼 Sponsor Loot Drop");
 
-      const offer = new TextInputBuilder()
-        .setCustomId("offer")
-        .setLabel("Which items would you like to give?")
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true);
+    const ign = new TextInputBuilder()
+      .setCustomId("ign")
+      .setLabel("Your Minecraft IGN")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
 
-      modal.addComponents(
-        new ActionRowBuilder().addComponents(ign),
-        new ActionRowBuilder().addComponents(offer)
-      );
-    }
+    const offer = new TextInputBuilder()
+      .setCustomId("offer")
+      .setLabel("Which items would you like to give?")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
 
-    // 📦 PICKUP ITEM FORM
-    if (value === "pickup") {
-      modal = new ModalBuilder()
-        .setCustomId("modal_pickup")
-        .setTitle("📦 Pickup Purchased Item");
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(ign),
+      new ActionRowBuilder().addComponents(offer)
+    );
+  }
 
-      const ign = new TextInputBuilder()
-        .setCustomId("ign")
-        .setLabel("Your Minecraft IGN")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
+  // 📦 PICKUP ITEM FORM
+  if (value === "pickup") {
+    modal = new ModalBuilder()
+      .setCustomId("modal_pickup")
+      .setTitle("📦 Pickup Purchased Item");
 
-      const item = new TextInputBuilder()
-        .setCustomId("item")
-        .setLabel("What item did you purchase?")
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true);
+    const ign = new TextInputBuilder()
+      .setCustomId("ign")
+      .setLabel("Your Minecraft IGN")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
 
-      modal.addComponents(
-        new ActionRowBuilder().addComponents(ign),
-        new ActionRowBuilder().addComponents(item)
-      );
-    }
+    const item = new TextInputBuilder()
+      .setCustomId("item")
+      .setLabel("What item did you purchase?")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
 
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(ign),
+      new ActionRowBuilder().addComponents(item)
+    );
+  }
+
+  // ✅ Wywołanie modala po zdefiniowaniu (poza ifami!)
+  if (modal) {
     await interaction.showModal(modal);
   }
+}
+
 
   // ======== FORM SUBMIT ========
   if (interaction.isModalSubmit()) {
