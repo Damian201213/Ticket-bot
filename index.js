@@ -17,6 +17,14 @@ const {
 } = require("discord.js");
 require("dotenv").config();
 
+// === KONFIGURACJA KLIENTA ===
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+});
 
 const TOKEN = process.env.BOT_TOKEN;
 const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID;
