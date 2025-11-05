@@ -519,24 +519,22 @@ if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select"
     if (interaction.customId === "delete_ticket") {
       await interaction.reply({ content: "🗑️ Deleting ticket...", ephemeral: true });
       setTimeout(() => interaction.channel.delete(), 3000);
+    }
   }
 });
-
+  
 // ===============================
 // 5️⃣ Logowanie bota
 // ===============================
 client.once("ready", () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
 });
-// na końcu bot.js — tylko jeśli deployujesz jako Render Web Service
-const http = require('http');
 
+// ===============================
+// Keep-alive (Render)
+const http = require("http");
 const PORT = process.env.PORT || 3000;
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('OK');
-});
-// === /panel command ===
-client.once("ready", () => {
-  console.log(`🤖 Logged in as ${client.user.tag}`);
-});
+http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("OK");
+}).listen(PORT);
