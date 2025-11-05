@@ -271,7 +271,8 @@ Don’t share personal information, including addresses, phone numbers, or priva
 
 
   // ======== /panel command ========
-  if (interaction.isChatInputCommand() && interaction.commandName === "panel") {
+  client.on("interactionCreate", async (interaction) => {
+if (interaction.isChatInputCommand() && interaction.commandName === "panel") {
     const embed = new EmbedBuilder()
       .setColor("#00ffff")
       .setTitle(`🎫 Tickets are used to provide support to the community. please do not create a troll ticket or misuse it.
