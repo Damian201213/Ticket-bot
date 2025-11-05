@@ -17,17 +17,13 @@ const {
 } = require("discord.js");
 require("dotenv").config();
 
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ],
-});
 
 const TOKEN = process.env.BOT_TOKEN;
 const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID;
+const GatewayIntentBits.Guilds,
+const GatewayIntentBits.GuildMembers,
+const GatewayIntentBits.GuildMessages,
+const GatewayIntentBits.MessageContent
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
 const CLEAR_CHANNEL_ID = process.env.CLEAR_CHANNEL_ID;
@@ -274,18 +270,6 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('OK');
 });
-// === KONFIGURACJA KLIENTA ===
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
-});
-
-const TOKEN = process.env.BOT_TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID;
-const GUILD_ID = process.env.GUILD_ID;
 
 // === REJESTRACJA KOMENDY /panel ===
 const commands = [
