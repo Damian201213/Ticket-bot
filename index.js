@@ -276,14 +276,14 @@ const server = http.createServer((req, res) => {
   res.end('OK');
 });
 
-// === REJESTRACJA KOMENDY /panel ===
-const commands = [
+
+// === DODAJEMY /panel DO JUŻ ISTNIEJĄCYCH KOMEND ===
+commands.push(
   new SlashCommandBuilder()
     .setName("panel")
-    .setDescription("📩 Wyślij panel ticketów (dla administratorów)"),
-].map((cmd) => cmd.toJSON());
-
-const rest = new REST({ version: "10" }).setToken(TOKEN);
+    .setDescription("📩 Wyślij panel ticketów (dla administratorów)")
+    .toJSON()
+);
 
 (async () => {
   try {
