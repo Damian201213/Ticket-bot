@@ -356,7 +356,7 @@ client.on("interactionCreate", async (interaction) => {
         .setStyle(TextInputStyle.Paragraph)
         .setRequired(true);
       
-      const details = new TextInputBuilder()
+      const spawner = new TextInputBuilder()
         .setCustomId("spawner")
         .setLabel("what spawners")
         .setStyle(TextInputStyle.Paragraph)
