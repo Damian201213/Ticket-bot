@@ -522,7 +522,6 @@ if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select"
     }
   }
 };
-  
 // ===============================
 // 5️⃣ Logowanie bota
 // ===============================
