@@ -312,11 +312,16 @@ Don’t share personal information, including addresses, phone numbers, or priva
 
     const row = new ActionRowBuilder().addComponents(menu);
 
-    await interaction.reply({
-      embeds: [embed],
-      components: [row],
-    });
-  }
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isButton()) return;
+
+    if (interaction.customId === 'support') {
+        await interaction.reply({
+            content: 'Formularz wsparcia!',
+            ephemeral: true
+        });
+    }
+});
 
   // ======== CATEGORY SELECT ========
   if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select") {
@@ -528,5 +533,3 @@ const server = http.createServer((req, res) => {
 client.once("ready", () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
 });
-
-client.on("interactionCreate", async (interaction) => {
