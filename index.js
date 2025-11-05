@@ -1,19 +1,3 @@
-
-`**1️⃣ Be Respectful**
-Treat all members with kindness and respect. No bullying, harassment, hate speech, or personal attacks.  
-💡 *This rule sets the tone for a positive and welcoming environment. It prevents toxic behavior that could drive people away.*
-
-**2️⃣ No Spamming or Flooding**
-Do not spam messages, images, or links. Avoid flooding the chat with excessive messages.  
-💡 *Spamming disrupts conversations and makes it difficult for others to engage in meaningful discussions.*
-
-**3️⃣ No NSFW Content**
-No explicit, sexually suggestive, or inappropriate content in any channels unless the server specifically allows for it.  
-💡 *This keeps the server safe for all ages and ensures a respectful space for everyone.*
-
-**4️⃣ Follow Discord’s Terms of Service**
-Always adhere to Discord’s Terms of Service and Community Guidelines.  
-💡 *This is a non-negotiable rule that protects your server from being taken down by Discord for violations of its terms.*
 // === bot.js ===
 const {
   Client,
@@ -25,7 +9,7 @@ const {
   PermissionsBitField
 } = require("discord.js");
 require("dotenv").config();
-
+`**1️⃣ Be Respectful**
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -40,6 +24,22 @@ const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
 const CLEAR_CHANNEL_ID = process.env.CLEAR_CHANNEL_ID;
+Treat all members with kindness and respect. No bullying, harassment, hate speech, or personal attacks.  
+
+`**1️⃣ Be Respectful**
+💡 *This rule sets the tone for a positive and welcoming environment. It prevents toxic behavior that could drive people away.*
+
+**2️⃣ No Spamming or Flooding**
+Do not spam messages, images, or links. Avoid flooding the chat with excessive messages.  
+💡 *Spamming disrupts conversations and makes it difficult for others to engage in meaningful discussions.*
+
+**3️⃣ No NSFW Content**
+No explicit, sexually suggestive, or inappropriate content in any channels unless the server specifically allows for it.  
+💡 *This keeps the server safe for all ages and ensures a respectful space for everyone.*
+
+**4️⃣ Follow Discord’s Terms of Service**
+Always adhere to Discord’s Terms of Service and Community Guidelines.  
+💡 *This is a non-negotiable rule that protects your server from being taken down by Discord for violations of its terms.*
 
 // ===============================
 // 1️⃣ Rejestracja komendy /clear
