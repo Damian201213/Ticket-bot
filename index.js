@@ -23,10 +23,10 @@ const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
 const CLEAR_CHANNEL_ID = process.env.CLEAR_CHANNEL_ID;
-Treat all members with kindness and respect. No bullying, harassment, hate speech, or personal attacks.  
 
 `**1️⃣ Be Respectful**
-💡 *This rule sets the tone for a positive and welcoming environment. It prevents toxic behavior that could drive people away.*
+💡 *This rule sets the tone for a positive and welcoming environment. It prevents toxic behavior that could drive people away.
+    Treat all members with kindness and respect. No bullying, harassment, hate speech, or personal attacks.  *
 
 **2️⃣ No Spamming or Flooding**
 Do not spam messages, images, or links. Avoid flooding the chat with excessive messages.  
