@@ -521,7 +521,7 @@ if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select"
       setTimeout(() => interaction.channel.delete(), 3000);
     }
   }
-});
+};
   
 // ===============================
 // 5️⃣ Logowanie bota
