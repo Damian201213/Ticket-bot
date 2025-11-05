@@ -70,7 +70,11 @@ const commands = [
         .setName("amount")
         .setDescription("How many messages to delete (1–100)")
         .setRequired(true)
-    )
+    ),
+
+  new SlashCommandBuilder()
+    .setName("panel")
+    .setDescription("🎫 Send the ticket panel with category selection.")
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(TOKEN);
@@ -265,26 +269,7 @@ Don’t share personal information, including addresses, phone numbers, or priva
   }
 });
 
-// ===============================
-// 5️⃣ Logowanie bota
-// ===============================
-client.once("ready", () => {
-  console.log(`🤖 Logged in as ${client.user.tag}`);
-});
-// na końcu bot.js — tylko jeśli deployujesz jako Render Web Service
-const http = require('http');
 
-const PORT = process.env.PORT || 3000;
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('OK');
-});
-// === /panel command ===
-client.once("ready", () => {
-  console.log(`🤖 Logged in as ${client.user.tag}`);
-});
-
-client.on("interactionCreate", async (interaction) => {
   // ======== /panel command ========
   if (interaction.isChatInputCommand() && interaction.commandName === "panel") {
     const embed = new EmbedBuilder()
@@ -525,11 +510,23 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 });
-// === START BOTA ===
+// ===============================
+// 5️⃣ Logowanie bota
+// ===============================
 client.once("ready", () => {
-  console.log(`🤖 Zalogowano jako ${client.user.tag}`);
+  console.log(`🤖 Logged in as ${client.user.tag}`);
 });
-server.listen(PORT, () => {
-  console.log(`Health server listening on port ${PORT}`);
+// na końcu bot.js — tylko jeśli deployujesz jako Render Web Service
+const http = require('http');
+
+const PORT = process.env.PORT || 3000;
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('OK');
 });
-client.login(TOKEN);
+// === /panel command ===
+client.once("ready", () => {
+  console.log(`🤖 Logged in as ${client.user.tag}`);
+});
+
+client.on("interactionCreate", async (interaction) => {
