@@ -5,6 +5,13 @@ const {
   EmbedBuilder,
   SlashCommandBuilder,
   REST,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ChannelType,
   Routes,
   PermissionsBitField
 } = require("discord.js");
